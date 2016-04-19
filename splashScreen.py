@@ -1,7 +1,7 @@
 from Tkinter import *
 from PIL import Image, ImageTk 
 
-
+#COMMENT
 def init(data): 
     data.mode = "splashScreen"
     data.startButtonX = 900

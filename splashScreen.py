@@ -1,7 +1,6 @@
 from Tkinter import *
 from PIL import Image, ImageTk 
 
-#COMMENT
 def init(data): 
     data.mode = "splashScreen"
     data.startButtonX = 900
@@ -13,26 +12,28 @@ def init(data):
     data.continueButtonWidth = 200 
     data.continueButtonLength = 50
     data.Baymax = Image.open("Big_Hero_6_Baymax.gif")
-    data.Baymax = data.Baymax.resize((700,700), Image.ANTIALIAS)
+    data.Baymax = data.Baymax.resize((1200,700), Image.ANTIALIAS)
     data.BaymaxImage = ImageTk.PhotoImage(data.Baymax)
     data.Baymax2 = Image.open("baymax2.gif")
     data.Baymax2 = data.Baymax2.resize((400,250), Image.ANTIALIAS)
     data.Baymax2Image = ImageTk.PhotoImage(data.Baymax2)
+    data.Camera = Image.open("camera.gif")
+    data.Camera = data.Camera.resize((300,300), Image.ANTIALIAS)
+    data.CameraImage = ImageTk.PhotoImage(data.Camera)    
 
 def mousePressed(event, data): 
     if data.mode == "splashScreen": 
         splashScreenMousedPressed(event,data)
     if data.mode == "instructionsScreen": 
         instructionsScreenMousedPressed(event, data) 
-    if data.mode == "webcamScreen": pass
+    #if data.mode == "webcamScreen": webcamScreenMousePressed(event,data)
     #if data.mode == "resultScreen": pass  
-
 
 
 def keyPressed(event, data): 
     if data.mode == "splashScreen": pass 
     if data.mode == "instructionsScreen": pass 
-    #if data.mode == "webcamScreen": 
+    if data.mode == "webcamScreen": webcamScreenKeyPressed(event, data)
     if data.mode == "resultScreen": pass 
 
 
@@ -44,9 +45,10 @@ def redrawAll(canvas, data):
         splashScreenReDrawAll(canvas, data)
     elif data.mode == "instructionsScreen": 
         instructionsScreenReDrawAll(canvas, data)
-    #if data.mode == "webcamScreen": 
-    elif data.mode == "resultScreen": 
-        moodScreenReDrawAll(canvas, data) 
+    elif data.mode == "webcamScreen": 
+        webcamScreenReDrawAll(canvas,data)
+    #elif data.mode == "resultScreen": 
+        #moodScreenReDrawAll(canvas, data) 
 
 
 ###############################################################################
@@ -65,18 +67,19 @@ def splashScreenReDrawAll(canvas, data):
         data.startButtonY+data.startButtonLength,fill = "white")
     canvas.create_text(1000,525,font="Times 20 bold italic", 
         text = "Let's Start!")
-    canvas.create_text(800, 150, font = "Times 60 bold italic", 
+    canvas.create_text(900, 75, font = "Times 60 bold italic", 
         text= "Baymax", fill= "white")
-    canvas.create_text(800, 230, font ='Times 40 bold italic', 
-        text = "Your Personal Mood Detector", fill = "white")
+    canvas.create_text(900, 150, font ='Times 40 bold italic', 
+        text = "Your Personal Sleep Tracker", fill = "white")
     
-
 
 
 def instructionsScreenMousedPressed(event, data):
     if ((data.continueButtonX <= event.x <= data.continueButtonX + data.continueButtonWidth) 
         and (data.continueButtonY <= event.y <= data.continueButtonY + data.continueButtonLength)):
         data.mode = "webcamScreen"
+        #captureFrame fucntion call 
+
 
 def instructionsScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
@@ -97,10 +100,19 @@ def instructionsScreenReDrawAll(canvas,data):
     canvas.create_text(100, 200, 
         text = "To ensure best results, follow the following directions...", 
         fill = "white", anchor = NW, font = "Times 40")
-    canvas.create_text(600, 625, text= "Continue", font = "Times 20 bold italic")
+    canvas.create_text(600, 625, text= "Continue", font= "Times 20 bold italic")
     canvas.create_image(0,450,image = data.Baymax2Image, anchor = NW)
 
 
+def webcamScreenKeyPressed(event, data): 
+    if event.keysym == "p":  pass
+
+def webcamScreenReDrawAll(canvas,data): 
+    canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
+    canvas.create_text(600,150, 
+        text = """Press 'P' when you are ready to take a picture.""", 
+        font = "Times 60")
+    canvas.create_image(600, 450, image = data.CameraImage)
 
 
 ###############################################################################

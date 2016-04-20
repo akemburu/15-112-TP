@@ -204,7 +204,7 @@ def findROIs():
             #tk.messageBox.showwarning("Error", "Please retake the image, following the instructions")
             #captureFrame()
     if len(eyes) == 2 and len(mouth) == 1: 
-        neighbors(eye1,eye2,mouth1)
+        finalAnswer = neighbors(eye1,eye2,mouth1)
 
 
 class facialFeatures(object): 
@@ -330,11 +330,13 @@ def neighbors(eye1,eye2,mouth1,k=3,filename = "data.csv"):
         y1 = dataSet[i][1]
         distance = calculateDistance(x,y,x1,y1)
         allDists.append((dataSet[i], distance))
-    allDists.sort(key = getKey(allDists))
+    newDst = sorted(allDists, key = getKey)
     neighbors = []
     for j in range(k):
-        neighbors.append(allDists[j][0])
-    return neighbors
+        neighbors.append(newDst[j][0])
+    print(neighbors)
+    #return neighbors
+    classification(neighbors)
 
 def getMaxKey(counts): 
     values = list(counts.values())

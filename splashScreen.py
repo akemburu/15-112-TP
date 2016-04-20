@@ -8,17 +8,21 @@ def init(data):
     data.startButtonWidth = 200
     data.startButtonLength = 50
     data.continueButtonX = 500
-    data.continueButtonY = 600
+    data.continueButtonY = 450
     data.continueButtonWidth = 200 
-    data.continueButtonLength = 50
+    data.continueButtonLength = 200
     data.Baymax = Image.open("Big_Hero_6_Baymax.gif")
     data.Baymax = data.Baymax.resize((1200,700), Image.ANTIALIAS)
     data.BaymaxImage = ImageTk.PhotoImage(data.Baymax)
-    data.Baymax2 = Image.open("baymax2.gif")
-    data.Baymax2 = data.Baymax2.resize((400,250), Image.ANTIALIAS)
-    data.Baymax2Image = ImageTk.PhotoImage(data.Baymax2)
+    data.nextScreenX = 800
+    data.nextScreenY = 500
+    data.nextScreenWidth = 200
+    data.nextScreenLength = 50 
+    #data.Baymax2 = Image.open("baymax2.gif")
+    #data.Baymax2 = data.Baymax2.resize((400,250), Image.ANTIALIAS)
+    #data.Baymax2Image = ImageTk.PhotoImage(data.Baymax2)
     data.Camera = Image.open("camera.gif")
-    data.Camera = data.Camera.resize((300,300), Image.ANTIALIAS)
+    data.Camera = data.Camera.resize((200,200), Image.ANTIALIAS)
     data.CameraImage = ImageTk.PhotoImage(data.Camera)    
 
 def mousePressed(event, data): 
@@ -26,14 +30,14 @@ def mousePressed(event, data):
         splashScreenMousedPressed(event,data)
     if data.mode == "instructionsScreen": 
         instructionsScreenMousedPressed(event, data) 
-    #if data.mode == "webcamScreen": webcamScreenMousePressed(event,data)
+    if data.mode == "webcamScreen": webcamScreenMousePressed(event,data)
     #if data.mode == "resultScreen": pass  
 
 
 def keyPressed(event, data): 
     if data.mode == "splashScreen": pass 
     if data.mode == "instructionsScreen": pass 
-    if data.mode == "webcamScreen": webcamScreenKeyPressed(event, data)
+    if data.mode == "webcamScreen": pass
     if data.mode == "resultScreen": pass 
 
 
@@ -47,8 +51,8 @@ def redrawAll(canvas, data):
         instructionsScreenReDrawAll(canvas, data)
     elif data.mode == "webcamScreen": 
         webcamScreenReDrawAll(canvas,data)
-    #elif data.mode == "resultScreen": 
-        #moodScreenReDrawAll(canvas, data) 
+    elif data.mode == "resultScreen": 
+        resultScreenReDrawAll(canvas, data) 
 
 
 ###############################################################################
@@ -83,36 +87,41 @@ def instructionsScreenMousedPressed(event, data):
 
 def instructionsScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
-    canvas.create_rectangle(data.continueButtonX,data.continueButtonY,
-        data.continueButtonX+data.continueButtonWidth,
-        data.continueButtonY+data.continueButtonLength,fill = "white")
     canvas.create_text(600, 100, font = "Times 60 bold italic", 
         text = "Instructions", fill = "white" )
-    canvas.create_text(100,300, font = "Times 40", 
+    canvas.create_text(100,200, font = "Times 40", 
         text = """1. Please make sure your face is in the webcam screen.""", 
         fill = "white", anchor = NW)
-    canvas.create_text(100,350, font = "Times 40",
+    canvas.create_text(100,250, font = "Times 40",
         text = """2. Please be in a well lit area.""", fill = "white", 
         anchor = NW)
-    canvas.create_text(100, 400, 
+    canvas.create_text(100, 300, 
         text = "3.Try to keep laptop or webcam at desk or face level.",
         font = "Times 40", fill ="white", anchor = NW)
-    canvas.create_text(100, 200, 
+    canvas.create_text(100, 150, 
         text = "To ensure best results, follow the following directions...", 
         fill = "white", anchor = NW, font = "Times 40")
-    canvas.create_text(600, 625, text= "Continue", font= "Times 20 bold italic")
-    canvas.create_image(0,450,image = data.Baymax2Image, anchor = NW)
+    canvas.create_text(100,350, font = "Times 40", text = """4. Click on the camera icon when you are ready, 
+        and then press "P" to capture the frame.""", 
+        fill = "white", anchor = NW )
+    canvas.create_image(500,450,image = data.CameraImage, anchor = NW)
 
-
-def webcamScreenKeyPressed(event, data): 
-    if event.keysym == "p":  pass
+def webcamScreenMousePressed(event, data): 
+    if ((data.nextScreenX <= event.x <= data.nextScreenX + data.nextScreenWidth) 
+        and (data.nextScreenY <= event.y <= data.nextScreenY + data.nextScreenLength)):
+        data.mode = "resultScreen"
 
 def webcamScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
-    canvas.create_text(600,150, 
-        text = """Press 'P' when you are ready to take a picture.""", 
-        font = "Times 60")
-    canvas.create_image(600, 450, image = data.CameraImage)
+    canvas.create_text(420,325, text = "Picture Time!", font = "Times 80", 
+        anchor = NW, fill = "white")
+    canvas.create_rectangle(data.nextScreenX,data.nextScreenY, 
+        data.nextScreenWidth+data.nextScreenX, data.nextScreenY+data.nextScreenLength, fill = "white")
+    canvas.create_text(900,515.5, text= """Let's Get Results!""", fill = "black" , font = "Times 20")
+
+def resultScreenReDrawAll(canvas, data):
+    canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
+    canvas.create_text(600, 100, text = "It seems that you are...", font = "Times 60", fill = "white")
 
 
 ###############################################################################

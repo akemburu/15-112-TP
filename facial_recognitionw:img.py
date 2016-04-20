@@ -77,7 +77,7 @@ for (x,y,w,h) in faces:
     mouth = mouth_cascade.detectMultiScale(roi_mouth_gray)
     for (ex,ey,ew,eh) in eyes:
         cv2.rectangle(roi_eyes_color, (ex,ey), (ex+ew, ey+eh), (0,255,0), 2)
-        #2 represents the thickness of the line 
+        #2 represents the thickness of the line pp
     for (mx, my, mw, mh) in mouth: 
         cv2.rectangle(roi_mouth_color, (mx,my), (mx+mw, my+mh), (0,0,255), 2)
         #2 represents the thickness of the line 

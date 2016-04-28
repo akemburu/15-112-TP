@@ -10,6 +10,7 @@ matplotlib.use("TkAgg")
 from matplotlib import pyplot as plt
 from matplotlib import style
 import string 
+import pickle
 
 #each eye and mouth will be stores as objects from eye class 
 #this way they can be accessed and used from inner methods  
@@ -36,14 +37,14 @@ def init(data):
     data.Baymax = data.Baymax.resize((1200,700), Image.ANTIALIAS)
     data.BaymaxImage = ImageTk.PhotoImage(data.Baymax)
     data.nextScreenX = 800
-    data.nextScreenY = 500
+    data.nextScreenY = 200
     data.nextScreenWidth = 200
     data.nextScreenLength = 50 
     data.sleepyEmoji = Image.open("sleeping-face.gif")
-    data.sleepyEmoji = data.sleepyEmoji.resize((350,350), Image.ANTIALIAS)
+    data.sleepyEmoji = data.sleepyEmoji.resize((300,300), Image.ANTIALIAS)
     data.sleepyEmojiImage = ImageTk.PhotoImage(data.sleepyEmoji)
     data.awakeEmoji = Image.open("relieved-face.gif")
-    data.awakeEmoji = data.awakeEmoji.resize((350,350), Image.ANTIALIAS)
+    data.awakeEmoji = data.awakeEmoji.resize((300,300), Image.ANTIALIAS)
     data.awakeEmojiImage = ImageTk.PhotoImage(data.awakeEmoji)
     data.Camera = Image.open("Camera-icon.gif")
     data.Camera = data.Camera.resize((200,200), Image.ANTIALIAS)
@@ -54,13 +55,13 @@ def init(data):
     data.usernameBoxW = 200
     data.usernameBoxL = 50
     data.YesX = 400
-    data.YesY = 550
-    data.YesWidth = 300  
-    data.YesLength = 100  
+    data.YesY = 600
+    data.YesWidth = 150  
+    data.YesLength = 50  
     data.NoX = 800 
-    data.NoY = 550 
-    data.NoWidth = 300
-    data.NoLength = 100
+    data.NoY = 600 
+    data.NoWidth = 150
+    data.NoLength = 50
     data.EnterX = 700
     data.EnterY = 500
     data.EnterWidth = 100
@@ -72,16 +73,25 @@ def init(data):
     data.mouth = None
     data.usernameBox = False
     data.sleepBoxX = 600
-    data.sleepBoxY = 300
-    data.sleepBoxWidth = 50
+    data.sleepBoxY = 350
+    data.sleepBoxWidth = 100
     data.sleepBoxLength = 50
     data.dateX = 600 
-    data.dateY = 400
-    data.dateWidth = 50
+    data.dateY = 550
+    data.dateWidth = 100
     data.dateLength = 50
     data.sleepBox = False 
     data.dateBox = False 
-
+    data.accuracy = None
+    data.baymax2 = Image.open("baymaxDoctor.gif")
+    data.baymax2 = data.baymax2.resize((1200,700), Image.ANTIALIAS)
+    data.baymax2Image = ImageTk.PhotoImage(data.baymax2) 
+    data.graph = None
+    data.logOutX = 1000
+    data.logOutY = 100
+    data.logOutWidth = 100
+    data.logOutLength = 50
+    data.error = False 
 
 def mousePressed(event, data): 
     if data.mode == "splashScreen": 
@@ -94,6 +104,10 @@ def mousePressed(event, data):
         resultScreenMousePress(event,data) 
     if data.mode == "sleepScreen": 
         sleepScreenMousePressed(event,data) 
+    if data.mode == "aboutScreen": 
+        aboutScreenMousePressed(event,data)
+    if data.mode == "graphScreen":
+        graphScreenMousePressed(event,data)
 
 def keyPressed(event, data): 
     if data.mode == "splashScreen": 
@@ -103,6 +117,7 @@ def keyPressed(event, data):
     if data.mode == "resultScreen": pass
     if data.mode == "sleepScreen": 
         sleepScreenKeyPressed(event,data)  
+    if data.mode == "aboutScreen": pass
 
 def timerFired(data):
     pass
@@ -118,9 +133,10 @@ def redrawAll(canvas, data):
         resultScreenReDrawAll(canvas, data) 
     elif data.mode == "sleepScreen": 
         sleepScreenReDrawAll(canvas,data)  
-    elif data.mode == "GraphScreen": 
+    elif data.mode == "graphScreen": 
         graphScreenReDrawAll(canvas,data)
-
+    elif data.mode == "aboutScreen": 
+        aboutScreenReDrawAll(canvas,data)
 
 ###############################################################################
 #animations 
@@ -129,10 +145,13 @@ def splashScreenMousedPressed(event,data):
     if ((data.usernameBoxX <= event.x <= data.usernameBoxX + data.usernameBoxW) and 
         (data.usernameBoxY <= event.y <= data.usernameBoxY + data.usernameBoxL)): 
         data.usernameBox = True 
-    if ((data.startButtonX <= event.x <= data.startButtonX + data.startButtonWidth) 
-        and (data.startButtonY <= event.y <= data.startButtonY + data.startButtonLength)):
+    if ((data.startButtonX <= event.x <= data.startButtonX+data.startButtonWidth) 
+        and (data.startButtonY <= event.y <= data.startButtonY+data.startButtonLength)):
         if data.username != "": 
             data.mode = "instructionsScreen"
+    if 1100 <= event.x <= 1200 and 600 <= event.y <= 700: 
+        data.accuracy = analyzeAccuracy() * 100 
+        data.mode = "aboutScreen"
 
 def splashScreenKeyPressed(event, data): 
     if event.keysym in string.ascii_letters: 
@@ -155,53 +174,63 @@ def splashScreenReDrawAll(canvas, data):
     canvas.create_text(845, 325, text = 'username:', fill = 'white', font = 'Times 40 italic')
     canvas.create_rectangle(data.usernameBoxX, data.usernameBoxY, data.usernameBoxX+data.usernameBoxW, 
         data.usernameBoxY+data.usernameBoxL, fill ="white")
-    if data.usernameBox: 
+    canvas.create_text(1150, 650, text = '?', fill = 'white', font = 'Times 40')
+    if data.usernameBox:
+        canvas.create_rectangle(data.usernameBoxX, data.usernameBoxY, data.usernameBoxX+data.usernameBoxW, 
+        data.usernameBoxY+data.usernameBoxL, fill ="yellow") 
         canvas.create_text(975, 325,text=data.username,font="Times 25",anchor=W)
-    
+def  aboutScreenMousePressed(event,data):
+    if 1000 <= event.x <= 1100 and 100 <= event.y <= 1150: 
+        data.mode = "splashScreen"
+
+def aboutScreenReDrawAll(canvas,data):
+    canvas.create_rectangle(0,0,1200,700, fill="firebrick3")
+    canvas.create_rectangle(1000,100,1100,150, fill = "white")
+    canvas.create_text(1050, 125, text ="Back", font = "Times 30")
+    canvas.create_text(600, 350, text = str(data.accuracy), font = "Times 40")
 
 def instructionsScreenMousedPressed(event, data):
     if ((data.continueButtonX <= event.x <= data.continueButtonX + data.continueButtonWidth) 
         and (data.continueButtonY <= event.y <= data.continueButtonY + data.continueButtonLength)):
-        data.results = captureFrame()
+        data.results = captureFrame(data)
         print(data.results)
+        #if data.results == "error": 
+            #data.error = True 
         data.mode = "webcamScreen"
 
 def instructionsScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
     canvas.create_text(600, 100, font = "Times 60 bold italic", 
         text = "Instructions", fill = "white" )
-    canvas.create_text(100,200, font = "Times 40", 
+    canvas.create_text(150,200, font = "Times 25", 
         text = """1. Please make sure your face is in the webcam screen.""", 
         fill = "white", anchor = NW)
-    canvas.create_text(100,250, font = "Times 40",
+    canvas.create_text(150,250, font = "Times 25",
         text = """2. Please be in a well lit area.""", fill = "white", 
         anchor = NW)
-    canvas.create_text(100, 300, 
+    canvas.create_text(150, 300, 
         text = "3.Try to keep laptop or webcam at desk or face level.",
-        font = "Times 40", fill ="white", anchor = NW)
+        font = "Times 25", fill ="white", anchor = NW)
+    canvas.create_text(150,350, text ="4. Try to be in an empty setting.", font = "Times 25", fill = "white", anchor = NW)
     canvas.create_text(100, 150, 
         text = "To ensure best results, follow the following directions...", 
         fill = "white", anchor = NW, font = "Times 40")
-    canvas.create_text(100,350, font = "Times 40", text = """4. Click on the camera icon when you are ready, 
-        and then press "P" to capture the frame.""", 
+    canvas.create_text(150,400, font = "Times 25", text = """5. Click on the camera icon when you are ready, and then press "P" to capture the frame.""", 
         fill = "white", anchor = NW )
     canvas.create_image(500,450,image = data.CameraImage, anchor = NW)
 
 def webcamScreenMousePressed(event, data): 
     if ((data.nextScreenX <= event.x <= data.nextScreenX + data.nextScreenWidth) 
         and (data.nextScreenY <= event.y <= data.nextScreenY + data.nextScreenLength)):
-            print(data.results)
             if data.results != None: 
                 data.eye = data.results[0]
                 data.mouth = data.results[1]
                 data.state = data.results[2]
-                print(data.eye, data.mouth, data.state)
                 data.mode = "resultScreen"
 
 def webcamScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
-    canvas.create_text(420,325, text = "Picture Time!", font = "Times 80", 
-        anchor = NW, fill = "white")
+    canvas.create_image(0,0, image = data.baymax2Image, anchor = NW)
     canvas.create_rectangle(data.nextScreenX,data.nextScreenY, 
         data.nextScreenWidth+data.nextScreenX, data.nextScreenY+data.nextScreenLength, 
         fill = "white")
@@ -211,33 +240,38 @@ def webcamScreenReDrawAll(canvas,data):
 def resultScreenMousePress(event,data): 
     if ((data.YesX <= event.x <= data.YesX+data.YesWidth) 
         and (data.YesY <= event.y <= data.YesY+data.YesLength)): 
+        data.response = "yes"
+        writeDatatoCSV(data.eye,data.mouth, data.state)
         data.mode = "sleepScreen"
     if ((data.NoX <= event.x <= data.NoX+data.NoWidth) 
         and (data.NoY <= event.y <= data.NoY+data.NoLength)): 
         if data.state == "sleepy": 
             data.state = "awake"
+            data.response = "no"
+            writeDatatoCSV(data.eye,data.mouth, data.state)
+            data.mode = "sleepScreen"
         if data.state == "awake":
             data.state = "sleepy"
-        data.mode = "sleepScreen"
-    writeDatatoCSV(data.eye,data.mouth, data.state)
-
-
+            data.response = "no"
+            writeDatatoCSV(data.eye,data.mouth, data.state)
+            data.mode = "sleepScreen"
+    
 def resultScreenReDrawAll(canvas, data):
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
     state = str(data.state)
     canvas.create_text(600, 100, text = "It seems that you are...", 
         font = "Times 60", fill = "white")
-    canvas.create_text(600, 500, text = state, font = "Times 40")
+    canvas.create_text(600, 470, text = state, font = "Times 40")
     canvas.create_rectangle(data.YesX, data.YesY, data.YesX+data.YesWidth, 
         data.YesY+data.YesLength, fill = "white")
     canvas.create_rectangle(data.NoX, data.NoY, data.NoX+data.NoWidth,
         data.NoY+data.NoLength, fill = "white")
-    canvas.create_text(550, 550, text = "Yes", fill = "black", font = "Times 30")
-    canvas.create_text(950, 550, text = "No", fill = "black", font = "Times 30")
+    canvas.create_text(425, 625, text = "Yes", fill = "black", font = "Times 30")
+    canvas.create_text(825, 625, text = "No", fill = "black", font = "Times 30")
     if data.state == "awake": 
-        canvas.create_image(600,350, image = data.awakeEmojiImage)
+        canvas.create_image(600,300, image = data.awakeEmojiImage)
     if data.state == "sleepy": 
-        canvas.create_image(600, 350, image = data.sleepyEmojiImage)
+        canvas.create_image(600, 300, image = data.sleepyEmojiImage)
 
 def sleepScreenKeyPressed(event,data):
     if data.sleepBox:
@@ -263,16 +297,19 @@ def sleepScreenMousePressed(event, data):
     if data.sleepHours != None and data.date != None: 
         if ((data.EnterX <= event.x <= data.EnterX+data.EnterWidth) 
             and (data.EnterY <= event.y <= data.EnterY + data.EnterLength)):
-                userDictionary(data)
+                data.graph = plotGraph(data)
+                data.graphImg = Image.open(data.graph)
+                data.graphImg = data.graphImg.resize((600, 400), Image.ANTIALIAS)
+                data.graphImage = ImageTk.PhotoImage(data.graphImg)
                 data.mode = "graphScreen"
 
 
 def sleepScreenReDrawAll(canvas,data): 
     canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
-    canvas.create_text(100, 300, text ="How many hours of sleep did you get?", 
-        font = "Times 30", anchor = NW,fill = "white")
-    canvas.create_text(100, 400, text = "What is today's date?", 
-        font = "Times 30", anchor = NW, fill = "white")
+    canvas.create_text(600, 300, text ="How many hours of sleep did you get?", 
+        font = "Times 50",fill = "white")
+    canvas.create_text(600, 500, text = "What is today's date?", 
+        font = "Times 50", fill = "white")
     canvas.create_rectangle(data.EnterX, data.EnterY, data.EnterX+data.EnterWidth, 
         data.EnterY+data.EnterLength, fill = "white")
     canvas.create_rectangle(data.dateX, data.dateY, 
@@ -281,40 +318,33 @@ def sleepScreenReDrawAll(canvas,data):
         data.sleepBoxX+data.sleepBoxWidth, data.sleepBoxY +data.sleepBoxLength, fill= "white")
     canvas.create_text(750, 525, text = "Enter", font = "times 20", fill = "black")
     if data.sleepBox or data.dateBox: 
-        canvas.create_text(625, 325, text = data.sleepHours, font = "Times 20", 
-            anchor = W,fill = "black") 
-        canvas.create_text(625, 425, text = data.date, font = "Times 20", 
-            anchor = W, fill = "black")
+        canvas.create_text(650, 375, text = data.sleepHours, font = "Times 20", 
+            anchor = NW,fill = "black") 
+        canvas.create_text(750, 475, text = data.date, font = "Times 20", 
+            anchor = NW, fill = "black")
+
+def graphScreenMousePressed(event,data): 
+    if ((data.logOutX <= event.x <= data.logOutX + data.logOutWidth) 
+        and (data.logOutY <= event.y <= data.logOutY + data.logOutLength)): 
+        data.username = ""
+        data.sleepHours = "" 
+        data.date= "" 
+        data.usernameBox = False 
+        data.mode = "splashScreen"
 
 
 def graphScreenReDrawAll(canvas, data): 
-    pass
+    canvas.create_rectangle(0,0,1200,700, fill="firebrick1")
+    canvas.create_image(600,400, image= data.graphImage)
+    canvas.create_rectangle(data.logOutX,data.logOutY,
+        data.logOutX+data.logOutWidth,data.logOutY+data.logOutLength,fill="white")
+    canvas.create_text(1050, 125, text = "Log Out",fill = 'black',font = "Times 20")
+    canvas.create_text(500, 50, text = "Your Sleep Data", font = "Times 40", fill = "white", anchor = NW)
     #open up 
 
 ###############################################################################
-def userDictionary(filename): 
-    with open("users.csv", "rb") as userData: 
-        userDict = csv.reader(userData)
-        return userDict
-
-def dictionaryModification(data): 
-    userDict = userDictionary("users.csv")
-    if data.username in userDict: 
-        currentValue = userDict[data.username]
-        if data.state == "awake": 
-            currentValue[0].append((data.date, data.sleepHours))
-        if data.state == "sleepy": 
-            currentValue[1].append((data.date, data.sleepHours))
-    else: 
-        if data.state == "awake": 
-            userDict[data.username] = [[(data.date, data.sleepHours)],[]]
-        if data.state == "sleepy": 
-            userDict[data.username] = [[],[(data.date, data.sleepHours)]]
-    print(userDict)
-    writeUsertoCSV(userDict)
-
-
-def captureFrame():
+count = 0 
+def captureFrame(data):
     cap = cv2.VideoCapture(0)
     while True: 
         ret, img = cap.read() 
@@ -344,11 +374,11 @@ def captureFrame():
             cap.release()
             cv2.destroyAllWindows() 
             break
-    results = findROIs("test.jpg")
-    print(results)
+    results = findROIs("test.jpg",data)
+    print(results,"captureFrame")
     return results 
 
-def findROIs(filename): 
+def findROIs(filename,data): 
     img = cv2.imread(filename)
     #this line of code stores the image read by openCV in the img variable
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -357,6 +387,7 @@ def findROIs(filename):
     #detects faces using the face_cascade and the grayscale of the img 
     #the second parameter represents scaleFactor
     #the third parameter represents minimum neighbors 
+    #if count >= 5: return "error"
     for (x,y,w,h) in faces: 
         #extracts x,y, width, height of faces 
         #roi stands for the region of interest 
@@ -374,26 +405,19 @@ def findROIs(filename):
         mouth = mouth_cascade.detectMultiScale(roi_mouth_gray,1.1,50)
         print(eyes)
         print(mouth)
-        if len(eyes) == 2: 
+        if len(eyes) == 2 and len(mouth) == 1: 
             ex, ey, ew, eh = eyes[0]
             eye1 = eyesClass(ex,ey,ew,eh)
             ex2, ey2, ew2, eh2 = eyes[1]
             eye2 = eyesClass(ex2, ey2, ew2,eh2)
-        else: 
-            print("eye error")
-            #tk.messageBox.showwarning("Error", "Please retake the image, following the instructions")
-            captureFrame()
-        if len(mouth) == 1:
             mx,my,mw,mh = mouth[0]
             mouth1 = mouthClass(mx,my,mw,mh)
         else: 
-            print("mouth error")
-            #messageBox.showwarning("Error", "Please retake the image, following the instructions")
-            captureFrame()
-    if len(eyes) == 2 and len(mouth) == 1: 
+            print("error")
+            captureFrame(data)
+    if len(eyes) == 2 and len(mouth) == 1:
         finalAnswer = neighbors(eye1,eye2,mouth1)
-        print(finalAnswer)
-        return finalAnswer
+        return finalAnswer 
 
 
 class facialFeatures(object): 
@@ -413,7 +437,7 @@ class eyesClass(facialFeatures):
         self.width = width 
         self.height = height
         self.croppedImage = self.cropImage()
-        print("Yay!!")
+        print("Yay!! eyes")
 
     def cropImage(self): 
         cropEyes = roi_eyes_color[self.y:self.y+self.height,self.x:self.x+self.width]
@@ -443,7 +467,7 @@ class eyesClass(facialFeatures):
         _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
         equalizePupil = cv2.equalizeHist(thresholded)
         white = cv2.countNonZero(equalizePupil)
-        return (totalSpace - white)*.40
+        return (totalSpace - white)*.75
 
 class mouthClass(facialFeatures): 
     def __init__(self, x,y,width,height):
@@ -452,7 +476,7 @@ class mouthClass(facialFeatures):
         self.width = width 
         self.height = height
         self.croppedImage = self.cropImage()
-        print("Yay!!")
+        print("Yay!! mouth")
 
     def cropImage(self):
         mouthImg = roi_mouth_color[self.y:self.y+self.height,self.x:self.x+self.width]
@@ -524,14 +548,7 @@ def neighbors(eye1,eye2,mouth1,k=5,filename = "data.csv"):
     elif classification.count("sleepy") > classification.count("awake"):
         return (x,y,"sleepy")
 
-#writing data to a file 
-def writeUsertoCSV(dictionary): 
-    print("ayo")
-    with open("users.csv", "w") as userFile: 
-        userFileWriter = csv.writer(userFile)
-        userFileWriter.writerow([dictionary])
-    userFile.close()
-
+#writing data to a file
 def writeDatatoCSV(x,y,classification): 
     with open("data.csv", "a") as datafile:
         dataFileWriter = csv.writer(datafile)
@@ -543,14 +560,73 @@ def initializeData(filename):
     writeDatatoCSV(x,y,classification)
 
 def writeAccuracytoCSV(response): 
-    with open("accuracy.csv","w") as accuracyFile: 
+    with open("accuracy.csv","a") as accuracyFile: 
         accuracyFileWriter = csv.writer(accuracyFile)
         accuracyFileWriter.writerow([response])
 
-def plotGraph(): pass
+def analyzeAccuracy():
+    with open("accuracy.csv","rb") as analysisFile: 
+        data = csv.reader(analysisFile)
+        data = list(data)
+        singleton = [] 
+        for i in range(len(data)):
+            singleton += data[i]
+    success = singleton.count("yes")
+    return (success * 1.0) / len(singleton)
+
+def writeUsertoCSV(dictionary): 
+    print("ayo")
+    newDict = pickle.dump(dictionary, open( "save.p", "wb" ))
+
+def userDictionary(): 
+    currentDict = pickle.load( open( "save.p", "rb" ))
+    return currentDict
+
+def dictionaryModification(data): 
+    userDict = userDictionary()
+    if data.username in userDict: 
+        currentValue = userDict[data.username]
+        currentValue.append((data.date, data.sleepHours,data.state))
+    else: 
+        userDict[data.username] = []
+        currentValue = userDict[data.username]
+        currentValue.append((data.date,data.sleepHours,data.state))
+    userDict[data.username] = currentValue
+    print(userDict)
+    writeUsertoCSV(userDict)
+    return userDict
+
+
+def plotGraph(data): 
+    updatedDictionary = dictionaryModification(data)
+    value = updatedDictionary[data.username]
+    style.use('ggplot')
+    sleepyXData = []
+    sleepyYData = []
+    awakeXData = []
+    awakeYData = []
+    for i in range(len(value)): 
+        if value[i][2].strip() == "awake": 
+            awakeXData.append(float(value[i][0]))
+            awakeYData.append(float(value[i][1]))
+        else: 
+            sleepyXData.append(float(value[i][0]))
+            sleepyYData.append(float(value[i][1]))
+
+    hi = plt.scatter(awakeXData, awakeYData, color ='k', s=50)
+    bye = plt.scatter(sleepyXData, sleepyYData, color='g',s=50)
+    plt.legend((hi, bye),('awake', 'sleepy'),scatterpoints=1,fontsize=8)
+
+    print(sleepyXData,sleepyYData, awakeXData, awakeYData)
+    plt.title('Your Sleep Schedule')
+    plt.ylabel('Number of Sleep Hours')
+    plt.xlabel('Day')
+    plt.legend()
+    plt.savefig("graph.png")
+    return "graph.png"
 
 ###############################################################################
-def run(width=750, height=750):
+def run(width=750, height=750): #from Kosbie's Notes 
     def redrawAllWrapper(canvas, data):
         canvas.delete(ALL)
         redrawAll(canvas, data)
@@ -590,7 +666,6 @@ def run(width=750, height=750):
     root.mainloop()  # blocks until window is closed
     print("bye!")
 
-
 def main(): 
     #initializeData("data1.jpg")
     #initializeData("data2.jpg")
@@ -614,4 +689,3 @@ def main():
     #initializeData("data20.jpg")
     run(1200,700)
 main() 
-
